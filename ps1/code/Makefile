@@ -1,20 +1,22 @@
 .PHONY: clean all
 
-START:=3
+START:=2
 STOP:=10000000
-PROCESSES:=16
+PROCESSES:=2
 
-serial: src/computeSerial.c
-	gcc -o bin/$@ src/computeSerial.c -std=c99 -lm -O2
+serial: computeSerial.c
+	gcc -o $@ computeSerial.c -std=c99 -lm -O2
 
 run_serial: serial
-	./bin/serial $(START) $(STOP)
+	./serial $(START) $(STOP)
 
-parallell: src/computeMPI.c
-	mpicc -o bin/$@ src/computeMPI.c -std=c99 -lm
+parallel: computeMPI.c
+	mpicc -o $@ computeMPI.c -std=c99 -lm
 
-run_parallell: parallell
-	mpiexec -n $(PROCESSES) ./bin/parallell $(START) $(STOP)
+run_parallel: parallel
+	mpiexec -np $(PROCESSES) ./parallel $(START) $(STOP)
+
+all: parallel
 
 clean:
-	rm -f bin/serial bin/parallell
+	rm -f serial parallel

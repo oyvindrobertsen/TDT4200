@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+#include <time.h>
 
 /*
 	A simple SERIAL example.
@@ -11,7 +12,6 @@
 */
 
 int main(int argc, char **argv) {
-	int rank, size;
 
 	if (argc < 3) {
 		printf("This program requires two parameters:\n \
@@ -29,6 +29,10 @@ start is 2 or greater, and end is greater than start.\n");
 		exit(1);
 	}
 
+    clock_t begin, end;
+    double time_spent;
+    begin = clock();
+
 	// Perform the computation
 	double sum = 0.0;
 	for (int i = start; i < stop ; i++) {
@@ -39,7 +43,10 @@ start is 2 or greater, and end is greater than start.\n");
 
 	//Print the global sum once only
 	printf("The sum is: %f\n", sum);
+    end = clock();
+    time_spent = (double)(end - begin) / CLOCKS_PER_SEC;
 
+    printf("Elapsed time: %f seconds\n", time_spent);
 	return 0;
 }
 
