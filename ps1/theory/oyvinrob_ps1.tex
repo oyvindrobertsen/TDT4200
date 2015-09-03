@@ -108,17 +108,44 @@ MPI processes running on these systems uses network interfaces to facilitate mes
 \subsection{Communicational bottlenecks}
 
 My implementation suffers from a communicational bottleneck in process 0, which is responsible for gathering the results from each of the other processes.
-Since the computation we want to perform on each of the results of the other processes is a fast one, namely adding, and there will be low variance in the time necessary to produce the result from the non-rank-0 processes, we will not be greatly effected by this bottleneck.
+Since the computation we want to perform on each of the results of the other processes is a fast one, namely adding, and there will be low variance in the time necessary to produce the result from the non-rank-0 processes, we will not be greatly effected by this bottleneck for this specific program.
 
 One way of reducing the impact of this bottleneck would be to not block the rank-0 process while it waits for the result from each other process, but rather to sum results from the worker-processes as they become available in a non-blocking fashion.
-Depending on the MPI implementation, this could be achieved by using \texttt{MPI\_Reduce} to gather the results.
+There are non-blocking \texttt{Send/Recv}-implementations that can be used.
+
+Alternatively, we could distribute the collection of results in a treelike structure of processes. (Rank 0 receives and sums results from two processes that have themselves summed the results of two subprocesses, and so on.)
 
 
 \subsection{Computational bottlenecks}
 
 
+Computing $\log{n}$ is the most expensive single operation my implementation performs.
+It also performs this operation n times regardless of how much we parallellize the solution.
+We can however improve on this brute force application by approximating the value of the sum with an integral.
+
+\begin{gather*}
+    \sum_{i}^{n} \frac{1}{\log{n}} = \int_{i}^{n} \frac{1}{\log{x}} dx
+\end{gather*}
+
+We can approximate this using, for instance, the trapezoidal rule.
 
 
+
+\section{Code analysis}
+
+\subsection{Total operations}
+
+The total number of operations my program performs is $O(n)$.
+The number of operations per process is $O(\frac{n}{P})$
+
+\subsection{Average MPI operations}
+
+The average amount of MPI operations per process is $O(1)$.
+
+\subsection{Maximum MPI operations}
+
+The maximum amount of MPI operations is the number of MPI-operations performed by the "master"-process, $P_0$.
+This process performs $O(P)$ MPI operations.
 
 %----------------------------------------------------------------------------------------
 
