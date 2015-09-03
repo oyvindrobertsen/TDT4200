@@ -1,7 +1,7 @@
 .PHONY: clean all
 
 START:=2
-STOP:=100
+STOP:=100000
 PROCESSES:=16
 
 serial: computeSerial.c

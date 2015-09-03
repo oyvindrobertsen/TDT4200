@@ -68,8 +68,8 @@ int main(int argc, char **argv) {
         local_finish_time = MPI_Wtime();
         local_elapsed_time = local_finish_time - local_start_time;
         MPI_Reduce(&local_elapsed_time, &elapsed_time, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
-        printf("%f\n", local_sum);
-        printf("Elapsed time: %f seconds\n", elapsed_time);
+        //printf("%f\n", local_sum);
+        printf("%f", elapsed_time);
     }
 
     MPI_Finalize();
