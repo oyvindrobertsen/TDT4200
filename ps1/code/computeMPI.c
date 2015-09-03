@@ -20,8 +20,8 @@ int main(int argc, char **argv) {
         exit(1);
     }
 
-    int start = atoi(argv[1]);
-    int stop = atoi(argv[2]);
+    long start = atol(argv[1]);
+    long stop = atol(argv[2]);
 
 
     if(start < 2 || stop <= start){
@@ -39,9 +39,9 @@ int main(int argc, char **argv) {
     MPI_Barrier(MPI_COMM_WORLD);
     local_start_time = MPI_Wtime();
 
-    int partition_size = (int) ((stop - start) / size);
-    int local_start = start + (rank * partition_size);
-    int local_stop = start + ((rank + 1) * partition_size);
+    long partition_size = (long) ((stop - start) / size);
+    long local_start = start + (rank * partition_size);
+    long local_stop = start + ((rank + 1) * partition_size);
     if (rank == size - 1) {
         local_stop += stop - local_stop;
     }
@@ -50,7 +50,7 @@ int main(int argc, char **argv) {
 
     // Perform the computation
     double local_sum = 0.0;
-    for (int i = local_start; i < local_stop; i++) {
+    for (long i = local_start; i < local_stop; i++) {
         local_sum += 1.0/log(i);
     }
 

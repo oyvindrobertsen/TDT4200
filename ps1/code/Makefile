@@ -1,8 +1,8 @@
 .PHONY: clean all
 
 START:=2
-STOP:=10000000
-PROCESSES:=2
+STOP:=10000000000
+PROCESSES:=16
 
 serial: computeSerial.c
 	gcc -o $@ computeSerial.c -std=c99 -lm -O2

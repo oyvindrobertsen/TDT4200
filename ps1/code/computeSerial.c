@@ -20,8 +20,8 @@ start is 2 or greater, and end is greater than start.\n");
 		exit(1);
 	}
 
-	int start = atoi(argv[1]);
-	int stop = atoi(argv[2]);
+	long start = atol(argv[1]);
+	long stop = atol(argv[2]);
 
 
 	if(start < 2 || stop <= start){
@@ -35,7 +35,7 @@ start is 2 or greater, and end is greater than start.\n");
 
 	// Perform the computation
 	double sum = 0.0;
-	for (int i = start; i < stop ; i++) {
+	for (long i = start; i < stop ; i++) {
 		sum += 1.0/log(i);
 	}
 
