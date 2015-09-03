@@ -26,6 +26,8 @@
 \usepackage{amsmath,amsfonts,amsthm} % Math packages
 \usepackage[utf8]{inputenc}
 
+\usepackage{graphicx}
+
 \usepackage{lipsum} % Used for inserting dummy 'Lorem ipsum' text into the template
 
 \usepackage{sectsty} % Allows customizing section commands
@@ -138,14 +140,40 @@ We can approximate this using, for instance, the trapezoidal rule.
 The total number of operations my program performs is $O(n)$.
 The number of operations per process is $O(\frac{n}{P})$
 
+\subsection{Total MPI operations}
+
+The total amount of MPI operations in my program is $O(P)$.
+
 \subsection{Average MPI operations}
 
 The average amount of MPI operations per process is $O(1)$.
 
 \subsection{Maximum MPI operations}
 
-The maximum amount of MPI operations is the number of MPI-operations performed by the "master"-process, $P_0$.
+The maximum amount of MPI operations performed by any process is the number of MPI-operations performed by the "master"-process, $P_0$.
 This process performs $O(P)$ MPI operations.
+
+\subsection{Run-time differences}
+
+The data was gathered by running my parallel implementation on \texttt{ITS-015-12} with all the different input variations.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\linewidth]{low.png}
+    \caption{Run-time for evenly incrementing ranges within $2 \rightarrow 100$} \label{fig:low}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\linewidth]{med.png}
+    \caption{Run-time for evenly incrementing ranges within $2 \rightarrow 1000000$} \label{fig:med}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\linewidth]{high.png}
+    \caption{Run-time for evenly incrementing ranges within $2 \rightarrow 1000000000$} \label{fig:high}
+\end{figure}
 
 %----------------------------------------------------------------------------------------
 
