@@ -105,6 +105,19 @@ MPI processes running on these systems uses network interfaces to facilitate mes
 
 \section{Code Theory}
 
+\subsection{Communicational bottlenecks}
+
+My implementation suffers from a communicational bottleneck in process 0, which is responsible for gathering the results from each of the other processes.
+Since the computation we want to perform on each of the results of the other processes is a fast one, namely adding, and there will be low variance in the time necessary to produce the result from the non-rank-0 processes, we will not be greatly effected by this bottleneck.
+
+One way of reducing the impact of this bottleneck would be to not block the rank-0 process while it waits for the result from each other process, but rather to sum results from the worker-processes as they become available in a non-blocking fashion.
+Depending on the MPI implementation, this could be achieved by using \texttt{MPI\_Reduce} to gather the results.
+
+
+\subsection{Computational bottlenecks}
+
+
+
 
 
 %----------------------------------------------------------------------------------------
