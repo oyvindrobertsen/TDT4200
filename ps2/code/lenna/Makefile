@@ -1,4 +1,4 @@
-.PHONY: clean all
+.PHONY: clean all cuda
 
 CFLAGS:=--std=c99
 CUDAFLAGS:=--compiler-bindir g++-4.8
@@ -23,3 +23,4 @@ all: cpu_version gpu_version
 clean: 
 	rm -f *.o gpu_version cpu_version lenna512x512_orig.png
 
+cuda: gpu_version
