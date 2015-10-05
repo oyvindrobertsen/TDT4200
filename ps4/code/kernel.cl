@@ -21,9 +21,9 @@ struct LineInfo{
 };
 
 typedef struct Pixel {
-    uint8 r;
-    uint8 g;
-    uint8 b;
+    unsigned char r;
+    unsigned char g;
+    unsigned char b;
 } Pixel;
 
 float red( float deg ) {
@@ -58,7 +58,9 @@ float blue( float deg ) {
 
 __kernel void blue_kernel(__global Pixel* image) {
     int i = get_global_id(0);
-    image[i].r = 0x00;
-    image[i].g = 0x00;
-    image[i].b = 0xFF;
+    Pixel p = image[i];
+    p.r = 0;
+    p.g = 255;
+    p.b = 0;
+    image[i] = p;
 }

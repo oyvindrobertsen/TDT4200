@@ -140,6 +140,8 @@ int main(){
     // Output setup
     Pixel* image = calloc(sizeof(Pixel), width*height);
 
+
+
     // Connect to a compute device
     int err;
     cl_device_id device_id;
@@ -207,6 +209,7 @@ int main(){
     // Query for maximum number of work items per workgroup
     size_t group_size;
     err = clGetKernelWorkGroupInfo(kernel, device_id, CL_KERNEL_WORK_GROUP_SIZE, sizeof(group_size), &group_size, NULL);
+    group_size = 500;
 
     // Execute Kernel / transfer result back from device
     const size_t work_items = (size_t) width*height;
@@ -221,16 +224,24 @@ int main(){
             NULL,
             NULL);
 
+    if (err != CL_SUCCESS) {
+        printf("Error: Failed to execute kernel.\n %d\n", err);
+        return EXIT_FAILURE;
+    }
+
     // Wait for kernels to finish
     clFinish(commands);
 
-    Pixel* out_image = calloc(sizeof(Pixel), width*height);
-    err = clEnqueueReadBuffer(commands, dev_image, CL_TRUE, 0, sizeof(Pixel) * width * height, out_image, 0, NULL, NULL );
+    err = clEnqueueReadBuffer(commands, dev_image, CL_TRUE, 0, sizeof(Pixel) * width * height, image, 0, NULL, NULL );
+    if (err != CL_SUCCESS) {
+        printf("Error: Could not transfer from device to host. \n %d \n", err);
+        return EXIT_FAILURE;
+    }
 
-    uint8_t* image_output_buffer = calloc(sizeof(uint8_t), width*height*3);
+    unsigned char* image_output_buffer = calloc(sizeof(unsigned char), width*height*3);
     int j = 0;
     for (int i = 0; i < width*height; i++) {
-        Pixel p = out_image[i];
+        Pixel p = image[i];
         image_output_buffer[j] = p.r;
         image_output_buffer[j+1] = p.g;
         image_output_buffer[j+2] = p.b;
