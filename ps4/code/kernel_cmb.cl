@@ -21,9 +21,9 @@ struct LineInfo{
 };
 
 typedef struct Pixel {
-    uint8 r;
-    uint8 g;
-    uint8 b;
+    uint8_t r;
+    uint8_t g;
+    uint8_t b;
 } Pixel;
 
 float red( float deg ) {
@@ -55,6 +55,25 @@ float blue( float deg ) {
 	float desc = deg*a1+b1;
 	return fmax( .0f , fmin( 1.f, fmin(asc,desc)));
 }
+
+/* On ITS015-XX, this function needs to be redeclared with the below modifier:
+struct vec3 __OVERLOADABLE__ cross()*/
+struct vec3 cross( struct vec3 a,struct vec3 b){
+	struct vec3 ret ;
+	ret.x = a.y*b.z - a.z*b.y;
+	ret.y = a.z*b.x - a.x*b.z;
+	ret.z = a.x*b.y - a.y*b.x;
+	return ret;
+}
+*/
+
+/* On ITS015-XX, this function needs to be redeclared with the below modifier:
+float __OVERLOADABLE__ dot()*/
+float dot( struct vec3 a , struct vec3 b ){
+	return a.x*b.x+ a.y*b.y+ a.z*b.z;
+}
+*/
+
 
 __kernel void blue_kernel(__global Pixel* image) {
     int i = get_global_id(0);
