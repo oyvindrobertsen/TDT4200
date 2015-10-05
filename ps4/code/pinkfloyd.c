@@ -1,4 +1,9 @@
-#include <CL/opencl.h>
+#ifdef __APPLE__
+    #include <OpenCL/opencl.h>
+#else
+    #include <CL/opencl.h>
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -101,13 +106,13 @@ int main(){
 	char *line = NULL;
 	size_t linelen = 0;
 	int width=0, height = 0;
-	ssize_t read = getline( & line, &linelen, stdin);
 
 	// Read size of canvas
+	ssize_t read = getline( & line, &linelen, stdin);
 	sscanf( line, "%d,%d" , &width,&height);
-	read = getline( & line, &linelen, stdin);
 
 	// Read amount of primitives
+	read = getline( & line, &linelen, stdin);
 	sscanf( line, "%d" , & numberOfInstructions);
 
 	// Allocate memory for primitives
@@ -117,11 +122,20 @@ int main(){
 	lineinfo = calloc( sizeof(struct LineInfo), numberOfInstructions);
 
 	// Read in each primitive
-	for ( int i =0 ; i < numberOfInstructions; i++){
+	for ( int i =0 ; i < numberOfInstructions; i++) {
 		ssize_t read = getline( &instructions[i] , &instructionLengths[i] , stdin);
-		/*Read in the line or circle here*/
+        if (instructions[i][0] == 'l') {
+            parseLine(instructions[i], lineinfo, &lines);
+        } else {
+            // We assume circle
+            parseCircle(instructions[i], circleinfo, &circles);
+        }
 	}
 
+    printLines(lineinfo, lines);
+    printCircles(circleinfo, circles);
+
+    /*
 	// Build OpenCL program (more is needed, before and after the below code)
 	char * source = readText("kernel.cl");
 	cl_context context; cl_int error_cl;
@@ -147,13 +161,13 @@ int main(){
 	lodepng_encode24(
 		&memfile,
 		&memfile_length,
-		/* Here's where your finished image should be put as parameter*/,
+		// Here's where your finished image should be put as parameter
 		width,
 		height);
 
 	// KEEP THIS LINE. Or make damn sure you replace it with something equivalent.
 	// This "prints" your png to stdout, permitting I/O redirection
 	fwrite( memfile, sizeof(unsigned char), memfile_length, stdout);
-
+    */
 	return 0;
 }
