@@ -1,3 +1,4 @@
+#define _GNU_SOURCE
 #ifdef __APPLE__
 #include <OpenCL/opencl.h>
 #else
@@ -140,8 +141,6 @@ int main(){
     // Output setup
     Pixel* image = calloc(sizeof(Pixel), width*height);
 
-
-
     // Connect to a compute device
     int err;
     cl_device_id device_id;
@@ -182,7 +181,7 @@ int main(){
     if (err != CL_SUCCESS) {
         size_t len;
         printf("Error: Failed to build program executable!\n");
-        clGetProgramBuildInfo(program, device_id, CL_PROGRAM_BUILD_LOG, NULL, NULL, &len);
+        clGetProgramBuildInfo(program, device_id, CL_PROGRAM_BUILD_LOG, 0, NULL, &len);
         char* log = malloc(sizeof(char)*len);
         clGetProgramBuildInfo(program, device_id, CL_PROGRAM_BUILD_LOG, len, log, NULL);
         printf("%s\n", log);
@@ -190,7 +189,7 @@ int main(){
     }
 
     // Create Kernel / transfer data to device
-    cl_kernel kernel = clCreateKernel(program, "blue_kernel", &err);
+    cl_kernel kernel = clCreateKernel(program, "render_pixel", &err);
     if (!kernel || err != CL_SUCCESS) {
         printf("Error: Failed to create kernel!\n");
         printf("Error code: %d", err);
@@ -199,20 +198,69 @@ int main(){
 
     cl_mem dev_image = clCreateBuffer(context, CL_MEM_WRITE_ONLY, sizeof(Pixel) * width*height, NULL, NULL);
     if (!dev_image) {
-        printf("Error: could not allocate memory on device!\n");
+        printf("Error: could not allocate memory on device for output image!\n");
         return EXIT_FAILURE;
     }
 
+    cl_mem dev_circle_list = clCreateBuffer(context, CL_MEM_READ_ONLY, sizeof(struct CircleInfo) * circles, NULL, NULL);
+    if (!dev_circle_list) {
+        printf("Error: could not allocate memory on device for circle list!\n");
+        return EXIT_FAILURE;
+    }
+    
+    cl_mem dev_line_list = clCreateBuffer(context, CL_MEM_READ_ONLY, sizeof(struct LineInfo) * lines, NULL, NULL);
+    if (!dev_line_list) {
+        printf("Error: could not allocate memory on device for line list!\n");
+        return EXIT_FAILURE;
+    }
+
+    cl_mem dev_circle_count = clCreateBuffer(context, CL_MEM_READ_ONLY, sizeof(size_t), NULL, NULL);
+    if (!dev_circle_count) {
+        printf("Error: could not allocate memory on device for circle count!\n");
+        return EXIT_FAILURE;
+    }
+
+    cl_mem dev_line_count = clCreateBuffer(context, CL_MEM_READ_ONLY, sizeof(size_t), NULL, NULL);
+    if (!dev_line_count) {
+        printf("Error: could not allocate memory on device for circle list!\n");
+        return EXIT_FAILURE;
+    }
+
+    cl_mem dev_width = clCreateBuffer(context, CL_MEM_READ_ONLY, sizeof(int), NULL, NULL);
+    if (!dev_width) {
+        printf("Error: could not allocate memory on device for circle list!\n");
+        return EXIT_FAILURE;
+    }
+
+    err = clEnqueueWriteBuffer(commands, dev_circle_list, CL_TRUE, 0, sizeof(struct CircleInfo) * circles, circleinfo, 0, NULL, NULL);
+    err = clEnqueueWriteBuffer(commands, dev_line_list, CL_TRUE, 0, sizeof(struct LineInfo) * lines, lineinfo, 0, NULL, NULL);
+    err = clEnqueueWriteBuffer(commands, dev_circle_count, CL_TRUE, 0, sizeof(size_t), &circles, 0, NULL, NULL);
+    err = clEnqueueWriteBuffer(commands, dev_line_count, CL_TRUE, 0, sizeof(size_t), &lines, 0, NULL, NULL);
+    err = clEnqueueWriteBuffer(commands, dev_width, CL_TRUE, 0, sizeof(int), &width, 0, NULL, NULL);
+
+    // Pass arguments to kernel
     err = 0;
     err = clSetKernelArg(kernel, 0, sizeof(cl_mem), &dev_image);
+    err |= clSetKernelArg(kernel, 0, sizeof(cl_mem), &dev_circle_list);
+    err |= clSetKernelArg(kernel, 0, sizeof(cl_mem), &dev_line_list);
+    err |= clSetKernelArg(kernel, 0, sizeof(cl_mem), &dev_circle_count);
+    err |= clSetKernelArg(kernel, 0, sizeof(cl_mem), &dev_line_count);
+    err |= clSetKernelArg(kernel, 0, sizeof(cl_mem), &dev_width);
+
+    if (err != CL_SUCCESS) {
+        printf("Error: Failed passing kernel arguments.\n%d\n", err);
+        return EXIT_FAILURE;
+    }
 
     // Query for maximum number of work items per workgroup
+    const size_t work_items = (size_t) width*height;
     size_t group_size;
     err = clGetKernelWorkGroupInfo(kernel, device_id, CL_KERNEL_WORK_GROUP_SIZE, sizeof(group_size), &group_size, NULL);
-    group_size = 500;
+    while (work_items % group_size != 0) {
+        group_size--;
+    }
 
     // Execute Kernel / transfer result back from device
-    const size_t work_items = (size_t) width*height;
     err = clEnqueueNDRangeKernel(
             commands,
             kernel,
