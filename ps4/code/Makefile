@@ -3,7 +3,7 @@
 CC:=clang
 libs:=-lOpenCL -lm
 mac_libs:=-lm -framework OpenCL
-CFLAGS:=--std=c99 -g -O2
+CFLAGS:=--std=c99 -g -Wall -Wextra -pedantic -O2
 
 image.png: program
 	./$< < input_tdsotm.txt > $@

@@ -138,6 +138,12 @@ int main(){
         }
     }
 
+
+    // Calculate bounding box for lines
+    for (int i = 0; i < lines; i++) {
+        
+    }
+
     //printLines(lineinfo, lines);
     //printCircles(circleinfo, circles);
 
@@ -236,21 +242,21 @@ int main(){
     }
 
     // Query for maximum number of work items per workgroup
-    const size_t work_items = (size_t) width*height;
-    size_t group_size;
-    err = clGetKernelWorkGroupInfo(kernel, device_id, CL_KERNEL_WORK_GROUP_SIZE, sizeof(group_size), &group_size, NULL);
-    while (work_items % group_size != 0) {
-        group_size--;
-    }
+    const size_t work_items[] =  {width, height};
+    size_t group_size[] ={10, 10};
+    //err = clGetKernelWorkGroupInfo(kernel, device_id, CL_KERNEL_WORK_GROUP_SIZE, sizeof(group_size), &group_size, NULL);
+    //while (work_items % group_size != 0) {
+    //    group_size--;
+    //}
 
     // Execute Kernel / transfer result back from device
     err = clEnqueueNDRangeKernel(
             commands,
             kernel,
-            1,
+            2,
             NULL,
-            &work_items,
-            &group_size,
+            work_items,
+            group_size,
             0,
             NULL,
             NULL);
@@ -290,5 +296,17 @@ int main(){
     // KEEP THIS LINE. Or make damn sure you replace it with something equivalent.
     // This "prints" your png to stdout, permitting I/O redirection
     fwrite( memfile, sizeof(unsigned char), memfile_length, stdout);
+    free(memfile);
+    free(image_output_buffer);
+    free(image);
+
+    clReleaseMemObject(dev_image);
+    clReleaseMemObject(dev_circle_list);
+    clReleaseMemObject(dev_line_list);
+    clReleaseProgram(program);
+    clReleaseKernel(kernel);
+    clReleaseCommandQueue(commands);
+    clReleaseContext(context);
+
     return 0;
 }
