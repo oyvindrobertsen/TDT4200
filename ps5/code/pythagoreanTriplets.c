@@ -38,8 +38,12 @@ int main(int argc, char **argv) {
         free(inputLine); lineLength = 0; inputLine = NULL;
         ssize_t readChars = getline(&inputLine, &lineLength, stdin);
 
+        int matches = sscanf(inputLine, "%d %d %d", &current_start, &current_stop, &tot_threads);
         // If there exists at least two matches (2x %d)...
-        if (sscanf(inputLine, "%d %d %d", &current_start, &current_stop, &tot_threads) >= 2){
+        if (matches == 2) {
+            tot_threads = 1;
+        }
+        if (matches >= 2){
             if(current_start < 0 || current_stop < 0){
                 current_start = 0, current_stop = 0;
             }
@@ -57,6 +61,7 @@ int main(int argc, char **argv) {
     for (int i = 0; i < amountOfRuns; i++) {
         // Current run
         int total_ppt = 0;
+        //printf("start: %d, stop: %d, threads: %d\n", start[i], stop[i], numThreads[i]);
         #pragma omp parallel for num_threads(numThreads[i]) \
             reduction(+: total_ppt)
         for (int c = start[i]; c < stop[i]; c++) {
