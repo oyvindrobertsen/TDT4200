@@ -7,4 +7,4 @@ omp:
 	gcc -fopenmp -DHAVE_OPENMP -std=c99 -o omp pythagoreanTriplets.c
 
 clean:
-	rm -f serial serial.dSYM omp
+	rm -rf serial serial.dSYM omp
