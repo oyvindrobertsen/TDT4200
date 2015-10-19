@@ -9,6 +9,7 @@
 #ifdef HAVE_OPENMP
 #include <omp.h>
 #endif
+
 /*
 int gcd(int a, int b) {
     while (b != 0) {
@@ -106,7 +107,7 @@ int main(int argc, char **argv) {
         int total_ppt = 0;
         //printf("start: %d, stop: %d, threads: %d\n", start[i], stop[i], numThreads[i]);
 #pragma omp parallel for num_threads(numThreads[i]) \
-        reduction(+: total_ppt)
+        reduction(+: total_ppt) schedule(guided)
         for (int c = start[i]; c < stop[i]; c++) {
             for (int b = 4; b < c; b++) {
                 for (int a = 3; a < b; a++) {
