@@ -57,6 +57,8 @@ int main(int argc, char **argv) {
     for (int i = 0; i < amountOfRuns; i++) {
         // Current run
         int total_ppt = 0;
+        #pragma omp parallel for num_threads(numThreads[i]) \
+            reduction(+: total_ppt)
         for (int c = start[i]; c < stop[i]; c++) {
             for (int b = 4; b < c; b++) {
                 for (int a = 3; a < b; a++) {
