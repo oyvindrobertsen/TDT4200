@@ -11,15 +11,15 @@
 #endif
 
 /*
-int gcd(int a, int b) {
-    while (b != 0) {
-        int temp = b;
-        b = a % b;
-        a = temp;
-    }
-    return a;
-}
-*/
+   int gcd(int a, int b) {
+   while (b != 0) {
+   int temp = b;
+   b = a % b;
+   a = temp;
+   }
+   return a;
+   }
+   */
 
 unsigned int gcd(unsigned int u, unsigned int v)
 {
@@ -92,6 +92,9 @@ int main(int argc, char **argv) {
                 current_start = 0, current_stop = 0;
             }
             stop[i] = current_stop;
+            if (current_start % 2 == 0) {
+                current_start++;
+            }
             start[i] = current_start;
             numThreads[i] = tot_threads;
         }
@@ -105,14 +108,21 @@ int main(int argc, char **argv) {
     for (int i = 0; i < amountOfRuns; i++) {
         // Current run
         int total_ppt = 0;
-        //printf("start: %d, stop: %d, threads: %d\n", start[i], stop[i], numThreads[i]);
-#pragma omp parallel for num_threads(numThreads[i]) \
-        reduction(+: total_ppt) schedule(guided)
-        for (int c = start[i]; c < stop[i]; c++) {
+        printf("start: %d, stop: %d, threads: %d\n", start[i], stop[i], numThreads[i]);
+#pragma omp parallel for num_threads(numThreads[i]) reduction(+: total_ppt) schedule(guided)
+        for (int c = start[i]; c < stop[i]; c = c + 2) {
             for (int b = 4; b < c; b++) {
-                for (int a = 3; a < b; a++) {
-                    if ((a*a + b*b == c*c) && gcd(a, b) == 1 && gcd(b, c) == 1) {
-                        total_ppt++;
+                if (b % 2 == 0) {
+                    for (int a = 3; a < b; a = a + 2) {
+                        if ((a*a + b*b == c*c) && gcd(a, b) == 1 && gcd(b, c) == 1) {
+                            total_ppt++;
+                        }
+                    }
+                } else {
+                    for (int a = 4; a < b; a = a + 2) {
+                        if ((a*a + b*b == c*c) && gcd(a, b) == 1 && gcd(b, c) == 1) {
+                            total_ppt++;
+                        }
                     }
                 }
             }
