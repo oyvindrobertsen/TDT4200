@@ -1,6 +1,7 @@
 #include <stdio.h> // for stdin
 #include <stdlib.h>
 #include <unistd.h> // for ssize_t
+#include "math.h"
 
 #ifdef HAVE_MPI
 #include <mpi.h>
@@ -10,17 +11,8 @@
 #include <omp.h>
 #endif
 
-/*
-   int gcd(int a, int b) {
-   while (b != 0) {
-   int temp = b;
-   b = a % b;
-   a = temp;
-   }
-   return a;
-   }
-   */
-
+// GCD-implementation taken from
+// https://en.wikipedia.org/wiki/Binary_GCD_algorithm#Iterative_version_in_C
 unsigned int gcd(unsigned int u, unsigned int v)
 {
     int shift;
@@ -63,71 +55,126 @@ unsigned int gcd(unsigned int u, unsigned int v)
 
 }
 
+
 int main(int argc, char **argv) {
+    // Setup common data structures, parse input
     char *inputLine = NULL; size_t lineLength = 0;
     int *start, *stop, *numThreads, amountOfRuns = 0;
-
-    // Read in first line of input
-    getline(&inputLine, &lineLength, stdin);
-    sscanf(inputLine, "%d", &amountOfRuns);
 
     stop = (int*) calloc(amountOfRuns, sizeof(int));
     start = (int*) calloc(amountOfRuns, sizeof(int));
     numThreads = (int*) calloc(amountOfRuns, sizeof(int));
 
-    int tot_threads, current_start, current_stop;
-    for (int i = 0; i < amountOfRuns; ++i){
 
-        // Read in each line of input that follows after first line
-        free(inputLine); lineLength = 0; inputLine = NULL;
-        ssize_t readChars = getline(&inputLine, &lineLength, stdin);
+    // MPI setup
+    int rank = 0;
+#ifdef HAVE_MPI
+    int size;
 
-        int matches = sscanf(inputLine, "%d %d %d", &current_start, &current_stop, &tot_threads);
-        // If there exists at least two matches (2x %d)...
-        if (matches == 2) {
-            tot_threads = 1;
-        }
-        if (matches >= 2){
-            if(current_start < 0 || current_stop < 0){
-                current_start = 0, current_stop = 0;
+    MPI_Init(&argc, &argv);
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+    MPI_Comm_size(MPI_COMM_WORLD, &size);
+
+#endif
+
+    if (rank == 0) {
+        // parse and read input in master process
+        // Read in first line of input
+        getline(&inputLine, &lineLength, stdin);
+        sscanf(inputLine, "%d", &amountOfRuns);
+
+        int tot_threads, current_start, current_stop;
+        for (int i = 0; i < amountOfRuns; ++i){
+
+            // Read in each line of input that follows after first line
+            free(inputLine); lineLength = 0; inputLine = NULL;
+            ssize_t readChars = getline(&inputLine, &lineLength, stdin);
+
+            int matches = sscanf(inputLine, "%d %d %d", &current_start, &current_stop, &tot_threads);
+            // If there exists at least two matches (2x %d)...
+            if (matches == 2) {
+                tot_threads = 1;
             }
-            stop[i] = current_stop;
-            if (current_start % 2 == 0) {
-                current_start++;
+            if (matches >= 2){
+                if(current_start < 0 || current_stop < 0){
+                    current_start = 0, current_stop = 0;
+                }
+                stop[i] = current_stop;
+                start[i] = current_start;
+                numThreads[i] = tot_threads;
             }
-            start[i] = current_start;
-            numThreads[i] = tot_threads;
         }
     }
 
-    /*
-     *	Remember to only print 1 (one) sum per start/stop.
-     *	In other words, a total of <amountOfRuns> sums/printfs.
-     */
+#ifdef HAVE_MPI
+    // Broadcast information parsed from input to other processes
+    MPI_Bcast(&amountOfRuns, 1, MPI_INT, 0, MPI_COMM_WORLD);
+    MPI_Bcast(start, amountOfRuns, MPI_INT, 0, MPI_COMM_WORLD);
+    MPI_Bcast(stop, amountOfRuns, MPI_INT, 0, MPI_COMM_WORLD);
+#endif
 
     for (int i = 0; i < amountOfRuns; i++) {
         // Current run
-        int total_ppt = 0;
-        printf("start: %d, stop: %d, threads: %d\n", start[i], stop[i], numThreads[i]);
-#pragma omp parallel for num_threads(numThreads[i]) reduction(+: total_ppt) schedule(guided)
-        for (int c = start[i]; c < stop[i]; c = c + 2) {
-            for (int b = 4; b < c; b++) {
-                if (b % 2 == 0) {
-                    for (int a = 3; a < b; a = a + 2) {
-                        if ((a*a + b*b == c*c) && gcd(a, b) == 1 && gcd(b, c) == 1) {
-                            total_ppt++;
-                        }
-                    }
-                } else {
-                    for (int a = 4; a < b; a = a + 2) {
-                        if ((a*a + b*b == c*c) && gcd(a, b) == 1 && gcd(b, c) == 1) {
-                            total_ppt++;
-                        }
-                    }
+        int local_ppt = 0;
+        int current_start = start[i];
+        int current_stop = stop[i];
+        int local_start = 2;
+        int local_stop = current_stop;
+        if (current_start > current_stop) {
+            if (rank == 0) {
+                printf("0\n");
+                continue;
+            }
+        }
+
+#ifdef HAVE_MPI
+        // Calculate local range
+        int local_range_size = (int) ((current_stop) / size);
+        local_start = 2 + (rank * local_range_size);
+        local_stop = 2 + (rank+1 * local_range_size);
+        if (rank == size - 1) {
+            local_stop += current_stop - local_stop;
+        }
+#endif
+
+#pragma omp parallel for num_threads(numThreads[i]) reduction(+: local_ppt) schedule(guided)
+        for (int m = local_start; m < local_stop; m++) {
+            for (int n = 1; n < m; n++) {
+                int c = m*m + n*n;                
+                if (c >= current_stop) {
+                    // n too large
+                    break;
+                }
+                if (c < current_start) {
+                    // n too small
+                    continue;
+                }
+                if (gcd(m, n) == 1 && (m - n) & 1) {
+                    // m, n are coprime and both are not odd
+                    // -> valid primitive pythagorean triplet
+                    //printf("%d, %d, %d, %d\n", i, m*m - n*n, 2*m*n, c);
+                    local_ppt++;
                 }
             }
         }
-        printf("%d\n", total_ppt);
+#ifdef HAVE_MPI
+        // Gather results and print total
+        int total_ppt = 0;
+        MPI_Reduce(&local_ppt, &total_ppt, 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
+        if (rank == 0) {
+            printf("%d\n", total_ppt);
+        }
+#else
+        printf("%d\n", local_ppt);
+#endif
     }
+
+    free(start);
+    free(stop);
+    free(numThreads);
+    free(inputLine);
+#ifdef HAVE_MPI
+    MPI_Finalize();
+#endif
     return 0;
 }
