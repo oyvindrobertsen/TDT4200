@@ -132,9 +132,12 @@ int main(int argc, char **argv) {
         // Calculate local range
         int local_range_size = (int) ((current_stop) / size);
         local_start = 2 + (rank * local_range_size);
-        local_stop = 2 + (rank+1 * local_range_size);
+        local_stop = 2 + ((rank+1) * local_range_size);
         if (rank == size - 1) {
             local_stop += current_stop - local_stop;
+        }
+        if (i == 1) {
+            printf("Rank %d: %d, %d\n", rank, local_start, local_stop);
         }
 #endif
 
