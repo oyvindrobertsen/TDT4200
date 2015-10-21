@@ -111,7 +111,7 @@ int main(int argc, char **argv) {
     MPI_Bcast(&amountOfRuns, 1, MPI_INT, 0, MPI_COMM_WORLD);
     MPI_Bcast(start, amountOfRuns, MPI_INT, 0, MPI_COMM_WORLD);
     MPI_Bcast(stop, amountOfRuns, MPI_INT, 0, MPI_COMM_WORLD);
-    MPI_Bcast(numThreads, amountOfRuns, MPI_INT, MPI_COMM_WORLD);
+    MPI_Bcast(numThreads, amountOfRuns, MPI_INT, 0, MPI_COMM_WORLD);
 #endif
 
     for (int i = 0; i < amountOfRuns; i++) {
