@@ -1,4 +1,4 @@
-.PHONY: serial mpi run_mpi omp mac_omp hybrid clean
+.PHONY: serial mpi run_mpi omp mac_omp hybrid run_hybrid clean
 
 all: serial omp
 
@@ -15,10 +15,13 @@ mpi:
 	mpicc -g -DHAVE_MPI -o $@ pythagoreanTriplets.c
 
 run_mpi: mpi
-	mpiexec -np 4 ./mpi < input.txt
+	mpirun -n 4 ./mpi < input.txt
 
 hybrid:
 	mpicc -g -fopenmp -DHAVE_MPI -DHAVE_OPENMP -o $@ pythagoreanTriplets.c
+
+run_hybrid: hybrid
+	mpirun -n 4 ./hybrid < input.txt
 
 clean:
 	rm -rf serial omp mpi *.dSYM hybrid
