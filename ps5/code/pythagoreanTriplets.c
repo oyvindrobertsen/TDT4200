@@ -136,9 +136,6 @@ int main(int argc, char **argv) {
         if (rank == size - 1) {
             local_stop += current_stop - local_stop;
         }
-        if (i == 1) {
-            printf("Rank %d: %d, %d\n", rank, local_start, local_stop);
-        }
 #endif
 
 #pragma omp parallel for num_threads(numThreads[i]) reduction(+: local_ppt) schedule(guided)
