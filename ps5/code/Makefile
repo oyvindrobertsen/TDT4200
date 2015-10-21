@@ -18,7 +18,7 @@ run_mpi: mpi
 	mpiexec -np 4 ./mpi < input.txt
 
 hybrid:
-	mpicc -g -DHAVE_MPI -DHAVE_OPENMP -o $@ pythagoreanTriplets.c
+	mpicc -g -fopenmp -DHAVE_MPI -DHAVE_OPENMP -o $@ pythagoreanTriplets.c
 
 clean:
 	rm -rf serial omp mpi *.dSYM hybrid
