@@ -61,11 +61,7 @@ int main(int argc, char **argv) {
     char *inputLine = NULL; size_t lineLength = 0;
     int *start, *stop, *numThreads, amountOfRuns = 0;
 
-    stop = (int*) calloc(amountOfRuns, sizeof(int));
-    start = (int*) calloc(amountOfRuns, sizeof(int));
-    numThreads = (int*) calloc(amountOfRuns, sizeof(int));
-
-
+    
     // MPI setup
     int rank = 0;
 #ifdef HAVE_MPI
@@ -82,6 +78,10 @@ int main(int argc, char **argv) {
         // Read in first line of input
         getline(&inputLine, &lineLength, stdin);
         sscanf(inputLine, "%d", &amountOfRuns);
+
+        stop = (int*) calloc(amountOfRuns, sizeof(int));
+        start = (int*) calloc(amountOfRuns, sizeof(int));
+        numThreads = (int*) calloc(amountOfRuns, sizeof(int));
 
         int tot_threads, current_start, current_stop;
         for (int i = 0; i < amountOfRuns; ++i){
@@ -109,6 +109,11 @@ int main(int argc, char **argv) {
 #ifdef HAVE_MPI
     // Broadcast information parsed from input to other processes
     MPI_Bcast(&amountOfRuns, 1, MPI_INT, 0, MPI_COMM_WORLD);
+    if (rank != 0) {
+        stop = (int*) calloc(amountOfRuns, sizeof(int));
+        start = (int*) calloc(amountOfRuns, sizeof(int));
+        numThreads = (int*) calloc(amountOfRuns, sizeof(int));
+    }
     MPI_Bcast(start, amountOfRuns, MPI_INT, 0, MPI_COMM_WORLD);
     MPI_Bcast(stop, amountOfRuns, MPI_INT, 0, MPI_COMM_WORLD);
     MPI_Bcast(numThreads, amountOfRuns, MPI_INT, 0, MPI_COMM_WORLD);
@@ -169,6 +174,11 @@ int main(int argc, char **argv) {
         printf("%d\n", local_ppt);
 #endif
     }
+    
+    free(start);
+    free(stop);
+    free(numThreads);
+    free(inputLine);
 
 #ifdef HAVE_MPI
     MPI_Finalize();
