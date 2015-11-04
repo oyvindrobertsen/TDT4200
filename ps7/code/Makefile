@@ -47,4 +47,4 @@ rungpu: newImageIdeaGPU
 	./newImageIdeaGPU 1 
 
 clean:
-	rm -f newImageIdeaOMP newImageIdeaMPI newImageIdeaGPU newImageIdeaDebug newImageIdeaDebugOMP newImageIdeaDebugMPI *.o
+	rm -f newImageIdeaOMP newImageIdeaMPI newImageIdeaGPU newImageIdeaDebug newImageIdeaDebugOMP newImageIdeaDebugMPI checker newImageIdeaReference flower_tiny_correct.ppm flower_small_correct.ppm flower_medium_correct.ppm *.o
