@@ -2,10 +2,10 @@
 
 all: newImageIdeaOMP newImageIdeaMPI newImageIdeaGPU newImageIdeaReference
 
-CUDAFLAGS:=--compiler-bindir gcc
+CUDAFLAGS:=--compiler-bindir gcc-4.8 -lm
 
 ppm.o: ppm.c
-	gcc -O2 -march=native --std=c99 $< -o $@ -c
+	gcc-4.8 -O2 -march=native --std=c99 $< -o $@ -c
 
 newImageIdeaGPU.cu.o: newImageIdeaGPU.cu
 	nvcc $(CUDAFLAGS) $< -o $@ -c
@@ -47,4 +47,4 @@ rungpu: newImageIdeaGPU
 	./newImageIdeaGPU 1 
 
 clean:
-	rm -f newImageIdeaOMP newImageIdeaMPI newImageIdeaGPU newImageIdeaDebug newImageIdeaDebugOMP newImageIdeaDebugMPI checker newImageIdeaReference flower_tiny_correct.ppm flower_small_correct.ppm flower_medium_correct.ppm *.o
+	rm -f newImageIdeaOMP newImageIdeaMPI newImageIdeaGPU newImageIdeaDebug newImageIdeaDebugOMP newImageIdeaDebugMPI checker newImageIdeaReference flower_tiny_correct.ppm flower_tiny.ppm flower_small_correct.ppm flower_small.ppm flower_medium_correct.ppm flower_medium.ppm *.o
