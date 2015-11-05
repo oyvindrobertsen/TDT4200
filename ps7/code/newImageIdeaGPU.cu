@@ -4,19 +4,6 @@
 #include <stdio.h>
 #include "ppmCU.h"
 
-// Image from:
-// http://7-themes.com/6971875-funny-flowers-pictures.html
-
-// TODO: You must implement this
-// The handout code is much simpler than the MPI/OpenMP versions
-//__global__ void performNewIdeaIterationGPU( ... ) { ... }
-
-// TODO: You should implement this
-//__global__ void performNewIdeaFinalizationGPU( ... ) { ... }
-
-// Perhaps some extra kernels will be practical as well?
-//__global__ void ...GPU( ... ) { ... }
-
 typedef struct {
     float red,green,blue;
 } AccuratePixel;
