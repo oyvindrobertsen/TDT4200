@@ -61,7 +61,7 @@ void performNewIdeaIteration(AccurateImage *imageOut, AccurateImage *imageIn, in
     memset(line_buffer, 0, imageIn->x * sizeof(AccuratePixel));
 
     //  Non-first threads need to read from the preceeding rows as well as its startY/stopY range
-    int preY
+    int preY;
     if (startY > 0) {
         preY = startY - size;
     }
