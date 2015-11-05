@@ -26,7 +26,7 @@ typedef struct {
      AccuratePixel *data;
 } AccurateImage;
 
-__global__ void convertImageToNewFormatGPU(PPMImage* image, AccurateImage* imageAccurate) {
+__global__ void convertImageToNewFormatGPU(PPMPixel* image, AccuratePixel* imageAccurate) {
     // Calculate data-index
     int x = blockIdx.x * blockDim.x + threadIdx.x;
     int y = blockIdx.y * blockDim.y + threadIdx.y;
@@ -42,9 +42,9 @@ __global__ void convertImageToNewFormatGPU(PPMImage* image, AccurateImage* image
 AccurateImage *convertImageToNewFormat(PPMImage *image) {
     // Allocate space for PPM-image on device
     PPMPixel* devImageData;
-    cudaMalloc((void**) devImageData, sizeof(PPMPixel) * image->x * image->y);
+    cudaMalloc((void**) &devImageData, sizeof(PPMPixel) * image->x * image->y);
     // Copy image to device
-    cudaMemCpy(devImageData, image->data, image->x * image->y * sizeof(PPMPixel), cudaMemCpyHostToDevice);
+    cudaMemcpy(devImageData, image->data, image->x * image->y * sizeof(PPMPixel), cudaMemcpyHostToDevice);
 	// Make a copy
 	AccurateImage *imageAccurate = createEmptyImage(image);
     // Allocate space for copy on device
@@ -58,7 +58,7 @@ AccurateImage *convertImageToNewFormat(PPMImage *image) {
     convertImageToNewFormatGPU<<<blocks, threadsPerBlock>>>(devImageData, devAccurateImageData);
     
     // Retrieve image from device
-    cudaMemCpy(imageAccurate->data, devAccurateImageData, image->x * image->y * sizeof(AccuratePixel), cudaMemCpyDeviceToHost);
+    cudaMemcpy(imageAccurate->data, devAccurateImageData, image->x * image->y * sizeof(AccuratePixel), cudaMemcpyDeviceToHost);
     // Cleanup
     cudaFree(devImageData);
     cudaFree(devAccurateImageData);
@@ -149,12 +149,12 @@ void performNewIdeaIteration(AccurateImage *imageOut, AccurateImage *imageIn, in
 	// Allocate space for imagedata on device
     AccuratePixel* devImageInData, devImageOutData;
     int* devSize;
-    cudaMalloc((void**) devImageInData, sizeof(AccuratePixel) * imageIn->x * imageIn->y);
-    cudaMalloc((void**) devImageOutData, sizeof(AccuratePixel) * imageIn->x * imageIn->y);
-    cudaMalloc((void**) devSize, sizeof(int));
+    cudaMalloc((void**) &devImageInData, sizeof(AccuratePixel) * imageIn->x * imageIn->y);
+    cudaMalloc((void**) &devImageOutData, sizeof(AccuratePixel) * imageIn->x * imageIn->y);
+    cudaMalloc((void**) &devSize, sizeof(int));
     // Copy image data to device
-    cudaMemCpy(devImageInData, imageIn->data, sizeof(AccuratePixel) * imageIn->x * imageIn->y, cudaMemCpyHostToDevice);
-    cudaMemCpy(devSize, &size, sizeof(int), cudaMemCpyHostToDevice);
+    cudaMemcpy(devImageInData, imageIn->data, sizeof(AccuratePixel) * imageIn->x * imageIn->y, cudaMemcpyHostToDevice);
+    cudaMemcpy(devSize, &size, sizeof(int), cudaMemcpyHostToDevice);
 	
     // Invoke kernel
     dim3 blocks(16, 16);
@@ -162,7 +162,7 @@ void performNewIdeaIteration(AccurateImage *imageOut, AccurateImage *imageIn, in
     performNewIdeaIterationGPU<<<blocks, threadsPerBlock>>>(devImageInData, devImageOutData, devSize);
 
     // Retrieve image
-    cudaMemCpy(imageOut->data, devImageOutData, sizeof(AccuratePixel) * imageIn->x * imageIn->y, cudaMemCpyDeviceToHost);
+    cudaMemcpy(imageOut->data, devImageOutData, sizeof(AccuratePixel) * imageIn->x * imageIn->y, cudaMemcpyDeviceToHost);
     cudaFree(devImageInData);
     cudaFree(devImageOutData);
     cudaFree(devSize);
@@ -216,8 +216,8 @@ void performNewIdeaFinalization(AccurateImage *imageInSmall, AccurateImage *imag
     cudaMalloc((void**) devImageInLargeData, sizeof(AccuratePixel) * imageOut->x * imageOut->y);
     cudaMalloc((void**) devImageOutData, sizeof(PPMPixel) * imageOut->x * imageOut->y);
     // Copy image data to device
-    cudaMemCpy(devImageInSmallData, imageInSmall->data, sizeof(AccuratePixel) * imageOut->x * imageOut->y, cudaMemCpyHostToDevice);
-    cudaMemCpy(devImageInLargeData, imageInLarge->data, sizeof(AccuratePixel) * imageOut->x * imageOut->y, cudaMemCpyHostToDevice);
+    cudaMemcpy(devImageInSmallData, imageInSmall->data, sizeof(AccuratePixel) * imageOut->x * imageOut->y, cudaMemcpyHostToDevice);
+    cudaMemcpy(devImageInLargeData, imageInLarge->data, sizeof(AccuratePixel) * imageOut->x * imageOut->y, cudaMemcpyHostToDevice);
 
     // Invoke kernel
     dim3 blocks(16, 16);
@@ -225,7 +225,7 @@ void performNewIdeaFinalization(AccurateImage *imageInSmall, AccurateImage *imag
     performNewIdeaFinalizationGPU<<<blocks, threadsPerBlock>>>(devImageInSmallData, devImageInLargeData, devImageOutData);
 
     // Retrieve result
-    cudaMemCpy(imageOut->data, devImageOutData, sizeof(PPMPixel) * imagOut->x * imageOut->y, cudaMemCpyDeviceToHost);
+    cudaMemcpy(imageOut->data, devImageOutData, sizeof(PPMPixel) * imagOut->x * imageOut->y, cudaMemcpyDeviceToHost);
     cudaFree(devImageInSmallData);
     cudaFree(devImageInLargeData);
     cudaFree(devImageOutData);
